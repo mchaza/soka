@@ -1,0 +1,17 @@
+kick1.wav:kick:2.0:1.0
+kick6.wav:kick:2.0:1.0
+kick7.wav:kick:2.0:1.0
+steal.ogg:steal:0.1:0.75
+steal.ogg:steal:0.1:0.85
+steal.ogg:steal:0.1:0.95
+steel_wall.wav:pickup:1.0:1.0
+steel_wall2.wav:pickup:1.0:1.0
+whistle.ogg:start:0.01:0.75
+kick6.wav:menuSelect:1.0:0.75
+kick7.wav:menuOption:0.75:0.75
+kick1.wav:ballSpawn:1.0:1.0
+steel_wall2.wav:wallBounce:1.0:1.0
+yeah.wav:p1Score:0.2:0.95
+yeah.wav:p2Score:0.2:0.95
+win.wav:winAudio:0.25:0.75
+cheering.ogg:cheering:0.4:1.0
