@@ -19,9 +19,9 @@ v0.3 avaiable to be played. This is the prototype/project build we created for a
 
 ##### Requires 2 Xbox360 Controllers to be played.
 
-RightStick  - Move team
-LeftStick   - Spread team
-RB/LB/A/B/X - Kick ball
+   - RightStick  - Move team  
+   - LeftStick   - Spread team  
+   - RB/LB/A/B/X - Kick ball  
 
 ## Development
 
