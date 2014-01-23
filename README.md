@@ -1,7 +1,7 @@
 SÖKA
 ====
 
-![SÖKA](http://www.hazagame.com/img/projects/project-02a.png)
+![SÖKA](http://www.hazagame.com/img/projects/project-02b.png)
 
 Local multiplayer minimalistic sports game focused around the manipulation of the whole team.
 
