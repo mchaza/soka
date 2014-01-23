@@ -1,4 +1,13 @@
-soka
+SÖKA
 ====
 
-Local multiplayer sports game
+![SÖKA](http://www.hazagame.com/img/projects/project-02a.png)
+
+Local multiplayer minimalistic sports game focused around the manipulation of the whole team.
+
+v0.3 avaiable to be played. This is the prototype/project build we created for a university course.
+
+Developed in Lua using Love2D engine, see [here](http://love2d.org).
+Currently in full development on v0.5 with full love2d 0.9 support, improved graphics and gameplay.
+
+Created by Harrison Smith & Choo Ming Sheng
