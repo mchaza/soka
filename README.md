@@ -13,7 +13,7 @@ v0.3 avaiable to be played. This is the prototype/project build we created for a
 
 [Windows](http://love2d.org)
 
-[Mac OSX](http://love2d.org)
+[Mac OSX](https://github.com/hazagame/soka/releases/download/v0.3/SOKA.zip)
 
 ## Controls
 
