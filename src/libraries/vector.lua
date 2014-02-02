@@ -83,22 +83,3 @@ end
 function Vector:clone()
     return Vector.new(self.x, self.y)
 end
-
--- a = Vector:new(2,2)
--- print(a:toString())
--- print(math.deg(a:ang()))
--- b = Vector:new(5,6)
--- print(a:to_s())
--- print(b:to_s())
--- print(a:distance(b))
--- print(a:is_nearby(10, a))
--- print(a:is_nearby(10, b))
--- print(a:is_nearby(3, b))
--- print((a+b):to_s())
--- print((b-a):to_s())
--- print((a*3):to_s())
--- print((a/3):to_s())
--- print((-a):to_s())
--- print(a:dot(b))
--- print(a:r())
-
