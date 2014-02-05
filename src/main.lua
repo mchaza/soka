@@ -24,6 +24,9 @@ require 'states/menustate'
 require 'states/gamestate'
 require 'states/pausestate'
 
+-- Tween
+tween = require 'libraries/tween'
+
 -- Constants 
 
 --The index for variables being passed by reference using a table
@@ -36,12 +39,28 @@ REF = 1
 -- set with default testing / development resolution in set options
 sf = { x, y, aspect}
 
+
+--Set Resolution 
+-- This is the current default resolution that we are developing for
+RESO_WIDTH = 1920
+RESO_HEIGHT = 1080
+FULL_SCREEN = true
+-- DEBUG MODE 
+-- Debug mode basically sets the resolution to 1024x768 and not fullscreen
+DEBUG = false
+
+if DEBUG then
+  RESO_WIDTH = 1024
+  RESO_HEIGHT = 768
+  FULL_SCREEN = false
+end
+
 -- Game options that control key variables that are to be access between
 -- states. Contains default options used when bypassing menu to game during
 -- testing / development
 -- All options have to be tables to be passed as reference for menu mulipulation
-options = {	resolution = {{ width = 1024, height = 768 }},
-		  	fullscreen = { false },
+options = {	resolution = {{ width = RESO_WIDTH, height = RESO_HEIGHT }},
+		  	fullscreen = { FULL_SCREEN },
 		  	fullscreentype = 'desktop',
 		  	borderless = { false },
 		  	vsync = { false },
@@ -81,6 +100,7 @@ end
 
 function love.update(dt)
 	state:update(dt)
+  tween.update(dt)
 end
 
 -- Key board functions

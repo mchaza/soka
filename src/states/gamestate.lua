@@ -8,12 +8,13 @@ GameState = {}
 	functions.
 
 	---- Last Update ----
-	Added the Ball and Team objects and drawing them.
+	Moved the collision update function to game state, now it gets the
+  combined members of both teams, randomises its order then checks
+  each member against the other team assoicated with that member for
+  randomised checking. 
 
 	---- Required Update ----
-	Add the level object that displays level objects.
-  
-  Reminder to reenable pause menu with quit button
+  Reminder to enable pause menu with quit button
 
 ]]
 
@@ -23,12 +24,9 @@ require 'objects/team'
 require 'objects/member'
 require 'objects/level'
 require 'objects/camera'
+require 'objects/graphics'
 require 'libraries/xboxlove'
-
--- Static variables
-local BALL_X = 50
-local BALL_Y = 50
-local BALL_R = 0.25
+require 'libraries/utils'
 
 -- New function declares new variables but should not initalise them,
 -- that should be done in the load function.
@@ -44,6 +42,7 @@ function GameState:new()
 	instance.ball = nil
 	instance.team1 = nil
 	instance.team2 = nil
+  instance.graphics = nil
   
 	return instance
 end
@@ -51,14 +50,15 @@ end
 function GameState:load()
   self.camera = Camera:new()
   self.level = Level:new()
+  self.graphics = Graphics:new()
   
-  self.ball = Ball:new(BALL_X, BALL_Y, BALL_R)
+  self.ball = Ball:new()
   local joysticks = love.joystick.getJoysticks()
 	if joysticks[1] ~= nil then
-    self.team1 = Team:new(25, 49.5, 0, joysticks[1])
+    self.team1 = Team:new(25, 49.5, 0, self.graphics.team1, joysticks[1])
   end
   if joysticks[2] ~= nil then
-    self.team2 = Team:new(75, 49.5, 180, joysticks[2])
+    self.team2 = Team:new(75, 49.5, 180, self.graphics.team2, joysticks[2])
     self.team1.otherteam = self.team2
     self.team2.otherteam = self.team1
   end
@@ -78,7 +78,26 @@ function GameState:update(dt)
   self.level:update(dt)
 	self.ball:update(dt)
 	if self.team1 ~= nil then self.team1:update(dt) end
-  if self.team2 ~= nil then self.team2:update(dt) end
+  if self.team2 ~= nil then 
+    self.team2:update(dt) 
+    --self:collision(dt)
+  end
+end
+
+-- Check collisions between team members 
+function GameState:collision(dt)
+  local members = {}
+  for k,v in pairs(self.team1.members) do members[k] = v end
+  for k,v in pairs(self.team2.members) do members[k+self.team2.size] = v end
+  shuffle(members)
+  
+  for _, member in ipairs(members) do
+    for _, mem in ipairs(member.team.otherteam.members) do
+      if mem ~= member then
+        member:collision(mem, dt)
+      end
+    end
+  end
 end
 
 function GameState:keypressed(k, unicode)

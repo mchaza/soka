@@ -17,6 +17,7 @@ Member = {}
 require 'libraries/vector'
 require 'libraries/utils'
 require 'objects/ball'
+require 'objects/level'
 
 function Member:new(x, y, tx, ty, size, graphics, team)
 	local instance = {}
@@ -33,33 +34,47 @@ function Member:new(x, y, tx, ty, size, graphics, team)
 	instance.team = team
   
   -- Velocity stores the movement/spread axis's to determine direction
-  -- a member is moving for collision rection 
+  -- a member is moving for collision reaction 
   instance.vel = Vector:new(0, 0)
-  instance.speed = 30 * sf.aspect
-  instance.regroupspeed = instance.speed / 3.0
+  instance.speed = 25 * sf.aspect
+  instance.scspeed = instance.speed / 2
+  instance.regroupspeed = instance.speed / 3.5
   instance.regroupthres = 0.05
   
   instance.spreadcontracting = false
+  instance.kicking = false
 
 	return instance
 end
 
 function Member:draw()
-  love.graphics.setColor(self.graphics.colour.r, self.graphics.colour.g,
-                         self.graphics.colour.b)
+  --[[love.graphics.setColor(self.graphics.colour.r, self.graphics.colour.g,
+                             self.graphics.colour.b)--]]
 	love.graphics.rectangle('fill', (self.pos.x - self.size/2) * sf.x,
-							(self.pos.y - self.size/2) * sf.y, 
-							self.size * sf.x, self.size * sf.y * sf.aspect)
+                             (self.pos.y - self.size/2) * sf.y, 
+                             self.size * sf.x, 
+                             self.size * sf.y * sf.aspect)
+         
   love.graphics.setColor(255, 255, 255)
+         
+  love.graphics.draw(self.graphics.image, self.graphics.sprite, 
+                    (self.pos.x - self.graphics.spriteSize/2) * sf.x, 
+                    (self.pos.y - self.graphics.spriteSize/2) * sf.y, 
+                    0, self.graphics.direction * 
+                    self.graphics.width, self.graphics.height, 
+                    self.graphics.offset , 0 )  
+                  
 end
 
 function Member:update(dt)
-  -- Movement 
-  self:move(dt)
-  self:spreadcontract(dt)
-  self:regroup(dt)
-  self:constrain(dt)
-  
+  --if not self.kicking then
+    -- Movement 
+    self:move(dt)
+    self:setDirection()
+    self:spreadcontract(dt)
+    self:regroup(dt)
+    self:constrain(dt)
+  --end
   -- Ball 
   if Game.ball.holder.current == nil then
     Game.ball:pickup(self)
@@ -88,8 +103,8 @@ function Member:spreadcontract(dt)
   local x = self.team.controller.Axes.RightX
   local y = self.team.controller.Axes.RightY
   
-  local sx = x * self.speed *dt
-  local sy = y * self.speed *dt
+  local sx = x * self.scspeed *dt
+  local sy = y * self.scspeed *dt
   
   if sx == 0 and sy == 0 then
     self.spreadcontracting = false
@@ -140,29 +155,70 @@ function Member:regroup(dt)
 end
 
 -- Constrain members within level
-function Member:constrain(dt) 
-  self.pos.x = lesser(self.pos.x, -self.size/2, 0, self.size/2)
-  self.pos.x = greater(self.pos.x, self.size/2, 100, 100-self.size/2)
-  self.pos.y = lesser(self.pos.y, -self.size/2, 0, self.size/2)
-  self.pos.y = greater(self.pos.y, self.size/2, 100, 100-self.size/2)
+ function Member:constrain(dt)
+  local carrydist = Vector:new(0, 0)
+  if Game.ball.holder.current == self then
+    carrydist = Game.ball.carrydist
+  end
+   
+  self.pos.x = lesser(self.pos.x, -self.size/2 + carrydist.x, FIELD_LEFT, 
+                      FIELD_LEFT + self.size/2 - carrydist.x )
+  self.pos.x = greater(self.pos.x, self.size/2 + carrydist.x, FIELD_RIGHT, 
+                      FIELD_RIGHT-self.size/2 - carrydist.x)
+  self.pos.y = lesser(self.pos.y, -self.size/2 + carrydist.y, FIELD_TOP - 4, 
+                      FIELD_TOP - 4 + self.size/2 - carrydist.y)
+  self.pos.y = greater(self.pos.y, self.size/2 + carrydist.y, FIELD_BOTTOM - 4, 
+                      FIELD_BOTTOM - 4-self.size/2 - carrydist.y)
 end
 
 -- Check if collision with other members of own and opposing team
 function Member:collision(member, dt)
-  if self.pos:isNearby(self.size, member.pos) then
-    local vx = math.sqrt(math.pow(self.vel.x, 2))
-    local vx2 = math.sqrt(math.pow(member.vel.x, 2))
-    if vx > vx2 then
-      member.pos.x = member.pos.x - (member.vel.x * 25) + rng:random(-5,5)
+  if self.pos:isNearby(self.size, member.pos) then    
+    local v = math.sqrt(math.pow(self.vel.x, 2) + math.pow(self.vel.y, 2))
+    local v2 = math.sqrt(math.pow(member.vel.x, 2) + math.pow(member.vel.x, 2))
+    local pushStrength = 10
+    if v > v2 then
+      --[[tween(0.1, member.pos, {x = member.pos.x - (-(self.vel.x + self.vel.y) 
+            * pushStrength)}, 'linear')
+      tween(0.1, member.pos, {y = member.pos.y - (-(self.vel.x + self.vel.y) 
+            * pushStrength)}, 'linear')]]
+        
+      member.pos.x = member.pos.x - (-(self.vel.x + self.vel.y) * pushStrength)
+      member.pos.y = member.pos.y - (-(self.vel.x + self.vel.y) * pushStrength)
     else
-      self.pos.x = self.pos.x - (self.vel.x * 25) + rng:random(-5,5)
+     --[[ tween(0.1, self.pos, {x = self.pos.x - (-(member.vel.x + member.vel.y) 
+            * pushStrength)}, 'linear')
+      tween(0.1, self.pos, {y = self.pos.y - (-(member.vel.x + member.vel.y) 
+            * pushStrength)}, 'linear')--]]
+      self.pos.x = self.pos.x - (-(member.vel.x + member.vel.y) * pushStrength)
+      self.pos.y = self.pos.y - (-(member.vel.x + member.vel.y) * pushStrength)
+    end
+  end
+end
+
+function Member:setDirection()
+  if self.vel.x > 0 then
+    self.graphics.direction = 1
+    self.graphics.offset = 0
+  elseif self.vel.x < 0 then
+    self.graphics.direction = -1
+    self.graphics.offset = self.graphics.size
+  end
+end
+
+--Obsolute Collision System
+--[[local vx = math.sqrt(math.pow(self.vel.x, 2))
+    local vx2 = math.sqrt(math.pow(member.vel.x, 2))
+    local pushStrength = 30
+    if vx > vx2 then
+      member.pos.x = member.pos.x - (-self.vel.x * pushStrength)
+    else
+      self.pos.x = self.pos.x - (-member.vel.x * pushStrength)
     end
     local vy = math.sqrt(math.pow(self.vel.y, 2))
     local vy2 = math.sqrt(math.pow(member.vel.y, 2))
     if vy > vy2 then
-      member.pos.y = member.pos.y - (member.vel.y * 25) + rng:random(-5,5)
+      member.pos.y = member.pos.y - (-self.vel.y * pushStrength)
     else
-      self.pos.y = self.pos.y - (self.vel.y * 25) + rng:random(-5,5)
-    end
-  end
-end
+      self.pos.y = self.pos.y - (-member.vel.y * pushStrength)
+    end]]
