@@ -15,8 +15,7 @@ Team = {}
 ]]
 
 -- Requires 
-require 'libraries/vector'
-require 'libraries/xboxlove'
+require 'libraries.xboxlove'
 
 -- Statics
 TEAM_SIZE = 6
@@ -52,6 +51,12 @@ function Team:draw()
 	end
 end
 
+function Team:drawshadows()
+  for _, member in ipairs(self.members) do
+		member:drawshadows()
+	end
+end
+
 function Team:update(dt)
   self.controller:update(dt)
 	for _, member in ipairs(self.members) do
@@ -68,7 +73,7 @@ function Team:createteam(x, y)
 
 	-- First member spawns in the center
 	table.insert(members, Member:new(x, y, 0,  0, MEMBER_SIZE ,self.graphics[1], self))
-	table.insert(formation, Vector:new(x,y))
+	table.insert(formation, Vector(x,y))
 
   local teamspawn = TEAM1_SPAWN
 
@@ -77,10 +82,10 @@ function Team:createteam(x, y)
   end
   
 	for i = 2, self.size do
-		local spawnPoint = calcSpawnPoint(degree, Vector:new(x,y), MEMBER_SEPERATION_DISTANCE)
+		local spawnPoint = calcSpawnPoint(degree, Vector(x,y), MEMBER_SEPERATION_DISTANCE)
 		local size = MEMBER_SIZE
 		table.insert(members, Member:new(x + teamspawn[i-1].x , y + teamspawn[i-1].y,
-                spawnPoint.x - x, spawnPoint.y - y, size, self.graphics[i], self))
+                spawnPoint.x - x, math.floor(spawnPoint.y - y), size, self.graphics[i], self))
 		table.insert(formation, spawnPoint)
 		degree = degree + degreeRequire
 	end
@@ -90,10 +95,9 @@ function Team:createteam(x, y)
 end
 
 function calcSpawnPoint(degree, origin, radius)
-	local point = Vector:new(0, 0)
+	local point = Vector(0, 0)
 	point.x = radius * math.cos(degree * math.pi/180) + origin.x
 	point.y = radius * math.sin(degree * math.pi/180) + origin.y
-	
 	return point
 end
 

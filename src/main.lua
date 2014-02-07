@@ -20,14 +20,15 @@ Main = {}
 
 -- Requires
 
-require 'states/menustate'
-require 'states/gamestate'
-require 'states/pausestate'
+require 'states.menustate'
+require 'states.gamestate'
+require 'states.pausestate'
 
--- Tween
-tween = require 'libraries/tween'
+-- Hump Library
 
--- Constants 
+Camera = require "libraries.hump.camera"
+Timer = require "libraries.hump.timer"
+Vector = require "libraries.hump.vector"
 
 --The index for variables being passed by reference using a table
 REF = 1
@@ -74,6 +75,9 @@ options = {	resolution = {{ width = RESO_WIDTH, height = RESO_HEIGHT }},
 -- maximum of two joysticks at a time can be stored in this table.
 controllers = {}
 
+-- Camera
+camera = Camera(0, 0)
+
 -- States
 
 Menu = MenuState:new()
@@ -95,12 +99,14 @@ function love.load()
 end
 
 function love.draw()
-	state:draw()
+	camera:attach()
+  state:draw()
+  camera:detach()
 end
 
 function love.update(dt)
 	state:update(dt)
-  tween.update(dt)
+  Timer.update(dt)
 end
 
 -- Key board functions

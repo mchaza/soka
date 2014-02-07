@@ -13,8 +13,8 @@ Graphics = {}
 ]]
 
 -- Requires 
-require 'libraries/vector'
-require 'objects/team'
+require 'libraries.vector'
+require 'objects.team'
 
 --Constants
 SPRITE_SIZE_X = 520
@@ -26,7 +26,7 @@ function Graphics:new()
 	self.__index = self
 
   instance.team1 = instance:initTeamGfx('assets/TeamOne.png', 1)
-  instance.team2 = instance:initTeamGfx('assets/TeamOne.png', -1)
+  instance.team2 = instance:initTeamGfx('assets/TeamTwo.png', -1)
 
 	return instance
 end
@@ -34,14 +34,11 @@ end
 function Graphics:initTeamGfx(file, direction)
   local gfx = {}
   local image = love.graphics.newImage(file)
-  local colour = { r= rng:random(0,255), g = rng:random(0,255), 
-                            b = rng:random(0,255)}
    
   local size = MEMBER_SIZE * 2.25
      
   for i = 0, TEAM_SIZE, 1 do
     gfx[i+1] = {}
-    gfx[i+1].colour = colour
     gfx[i+1].image = image
     gfx[i+1].sprite = love.graphics.newQuad(i * SPRITE_SIZE_X, 0, 
       SPRITE_SIZE_X, SPRITE_SIZE_Y, 

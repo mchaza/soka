@@ -14,19 +14,18 @@ Member = {}
 ]]
 
 -- Requires 
-require 'libraries/vector'
-require 'libraries/utils'
-require 'objects/ball'
-require 'objects/level'
+require 'libraries.utils'
+require 'objects.ball'
+require 'objects.level'
 
 function Member:new(x, y, tx, ty, size, graphics, team)
 	local instance = {}
 	setmetatable(instance, self)
 	self.__index = self
 
-	instance.pos = Vector:new(x, y)
+	instance.pos = Vector(x, y)
   -- Position distance from the center position of team
-  instance.teampos = Vector:new(tx, ty)
+  instance.teampos = Vector(tx, ty)
 	instance.size = size
   -- Graphics is a table that contains all the graphics data for the member
   instance.graphics = graphics
@@ -35,8 +34,8 @@ function Member:new(x, y, tx, ty, size, graphics, team)
   
   -- Velocity stores the movement/spread axis's to determine direction
   -- a member is moving for collision reaction 
-  instance.vel = Vector:new(0, 0)
-  instance.speed = 25 * sf.aspect
+  instance.vel = Vector(0, 0)
+  instance.speed = 1.75 * sf.x * sf.aspect
   instance.scspeed = instance.speed / 2
   instance.regroupspeed = instance.speed / 3.5
   instance.regroupthres = 0.05
@@ -48,14 +47,10 @@ function Member:new(x, y, tx, ty, size, graphics, team)
 end
 
 function Member:draw()
-  --[[love.graphics.setColor(self.graphics.colour.r, self.graphics.colour.g,
-                             self.graphics.colour.b)--]]
-	love.graphics.rectangle('fill', (self.pos.x - self.size/2) * sf.x,
+	--[[love.graphics.rectangle('fill', (self.pos.x - self.size/2) * sf.x,
                              (self.pos.y - self.size/2) * sf.y, 
                              self.size * sf.x, 
-                             self.size * sf.y * sf.aspect)
-         
-  love.graphics.setColor(255, 255, 255)
+                             self.size * sf.y * sf.aspect)]]
          
   love.graphics.draw(self.graphics.image, self.graphics.sprite, 
                     (self.pos.x - self.graphics.spriteSize/2) * sf.x, 
@@ -63,7 +58,16 @@ function Member:draw()
                     0, self.graphics.direction * 
                     self.graphics.width, self.graphics.height, 
                     self.graphics.offset , 0 )  
-                  
+end
+
+function Member:drawshadows()
+  love.graphics.setColor(0, 0, 0, 25)
+  
+  love.graphics.rectangle('fill', (self.pos.x -1.15) * sf.x,
+                          (self.pos.y + 4) * sf.y,
+                          2 * sf.x, 1.5 * sf.y * sf.aspect)
+  
+  love.graphics.setColor(255, 255, 255, 255)
 end
 
 function Member:update(dt)
@@ -141,7 +145,7 @@ function Member:regroup(dt)
   end
   
   local center = self.team.members[1].pos
-  local dist = self.pos:distance(center + self.teampos) / 10
+  local dist = self.pos:dist(center + self.teampos) / 10
   
   self.pos.x = greater(self.pos.x, 0, center.x + self.teampos.x, 
                        self.pos.x - self.regroupspeed * dist * dt)
@@ -156,7 +160,7 @@ end
 
 -- Constrain members within level
  function Member:constrain(dt)
-  local carrydist = Vector:new(0, 0)
+  local carrydist = Vector(0, 0)
   if Game.ball.holder.current == self then
     carrydist = Game.ball.carrydist
   end
@@ -167,29 +171,21 @@ end
                       FIELD_RIGHT-self.size/2 - carrydist.x)
   self.pos.y = lesser(self.pos.y, -self.size/2 + carrydist.y, FIELD_TOP - 4, 
                       FIELD_TOP - 4 + self.size/2 - carrydist.y)
-  self.pos.y = greater(self.pos.y, self.size/2 + carrydist.y, FIELD_BOTTOM - 4, 
-                      FIELD_BOTTOM - 4-self.size/2 - carrydist.y)
+  self.pos.y = greater(self.pos.y, self.size/2 + carrydist.y, FIELD_BOTTOM - 3, 
+                      FIELD_BOTTOM - 3-self.size/2 - carrydist.y)
 end
 
 -- Check if collision with other members of own and opposing team
 function Member:collision(member, dt)
-  if self.pos:isNearby(self.size, member.pos) then    
+  if self.pos:dist2(member.pos) < self.size then
+  --if self.pos:isNearby(self.size, member.pos) then    
     local v = math.sqrt(math.pow(self.vel.x, 2) + math.pow(self.vel.y, 2))
     local v2 = math.sqrt(math.pow(member.vel.x, 2) + math.pow(member.vel.x, 2))
     local pushStrength = 10
     if v > v2 then
-      --[[tween(0.1, member.pos, {x = member.pos.x - (-(self.vel.x + self.vel.y) 
-            * pushStrength)}, 'linear')
-      tween(0.1, member.pos, {y = member.pos.y - (-(self.vel.x + self.vel.y) 
-            * pushStrength)}, 'linear')]]
-        
       member.pos.x = member.pos.x - (-(self.vel.x + self.vel.y) * pushStrength)
       member.pos.y = member.pos.y - (-(self.vel.x + self.vel.y) * pushStrength)
     else
-     --[[ tween(0.1, self.pos, {x = self.pos.x - (-(member.vel.x + member.vel.y) 
-            * pushStrength)}, 'linear')
-      tween(0.1, self.pos, {y = self.pos.y - (-(member.vel.x + member.vel.y) 
-            * pushStrength)}, 'linear')--]]
       self.pos.x = self.pos.x - (-(member.vel.x + member.vel.y) * pushStrength)
       self.pos.y = self.pos.y - (-(member.vel.x + member.vel.y) * pushStrength)
     end

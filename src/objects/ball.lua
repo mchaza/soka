@@ -17,10 +17,9 @@ Ball = {}
 ]]
 
 -- Requires 
-require 'libraries/vector'
-require 'libraries/utils'
+require 'libraries.utils'
 
-require 'objects/level'
+require 'objects.level'
 
 -- CONSTANTS
 
@@ -30,7 +29,7 @@ KICK_SPEED = 75
 PICKUP_DELAY = 0.15
 
 BALL_R = 0.15
-BALL_X = FIELD_CENTER_X + BALL_R
+BALL_X = FIELD_CENTER_X + BALL_R * 2
 BALL_Y = FIELD_CENTER_Y + BALL_R * 2
 
 function Ball:new()
@@ -39,16 +38,16 @@ function Ball:new()
 	self.__index = self
 
   -- Movement
-	instance.pos = Vector:new(BALL_X, BALL_Y)
+	instance.pos = Vector(BALL_X, BALL_Y)
 	instance.rad = BALL_R
-  instance.vel = Vector:new(0, 0)
+  instance.vel = Vector(0, 0)
   instance.accel = 10
   instance.restitution = 0.85
   instance.friction = 0.2
   
   -- Handling
   instance.holder = {current = nil, previous = nil}
-  instance.carrydist = Vector:new(0, 0)
+  instance.carrydist = Vector(0, 0)
   -- Kicking
   instance.kicking = false
   instance.strength = 1.0
@@ -143,7 +142,6 @@ function Ball:kick(member, dt)
     direction.x = controls.Axes.LeftX
     direction.y = controls.Axes.LeftY
     
-    --print(direction.x .. ' ' .. direction.y)
     if direction.x == 0 and direction.y == 0 then
       if self.holder.current.team.direction == 0 then
         direction.x = 0.5
@@ -152,9 +150,18 @@ function Ball:kick(member, dt)
       end
     end
     
+    local vx = direction.x * KICK_SPEED * self.strength
+    local vy = direction.y * KICK_SPEED * self.strength
+    
     -- Apply Force
-    self.vel = Vector:new(direction.x * KICK_SPEED * self.strength, 
-                          direction.y * KICK_SPEED * self.strength)
+    self.vel = Vector(vx,vy)
+    
+    -- Apple Kick Back Tween to holder
+    local kickback = 30
+    local holderpos = self.holder.current.pos
+    Timer.tween(0.25, holderpos, {x = holderpos.x - vx/kickback, 
+                y = holderpos.y - vy/kickback},
+              'out-elastic')
     
     self.kicking = false
     self.holder.current.kicking = false
@@ -167,6 +174,9 @@ function Ball:kick(member, dt)
     -- Set Pickup delay
     self.canpickup = false
     self.pickuptimer = PICKUP_DELAY
+    
+    -- Play sounds
+   Game.camerashake:add(3, 0.25)
   end
   
 end
@@ -176,9 +186,9 @@ function Ball:pickup(member)
     return
   end
   
-  local pos = Vector:new(self.pos.x + self.rad, self.pos.y + self.rad)
-  local mpos = Vector:new(member.pos.x + member.size/2, member.pos.y + member.size/2)
-  if pos:isNearby(member.size * 1.5, mpos) then
+  local pos = Vector(self.pos.x + self.rad, self.pos.y + self.rad)
+  local mpos = Vector(member.pos.x + member.size/2, member.pos.y + member.size/2)
+  if pos:dist(mpos) <= member.size * 1.5 then
     self.holder.previous = self.holder.current
     self.holder.current = member
     self.vel = Vector:new(0, 0)
@@ -188,20 +198,31 @@ end
 function Ball:steal(member, dt)
   local holder = self.holder.current
   
-  --local pos = Vector:new(self.pos.x + self.rad, self.pos.y + self.rad)
-  local pos = Vector:new(holder.pos.x + holder.size/2, holder.pos.y + holder.size/2)
-  local mpos = Vector:new(member.pos.x + member.size/2, member.pos.y + member.size/2)
-  if pos:isNearby(member.size, mpos) then
+  local pos = Vector(holder.pos.x + holder.size/2, holder.pos.y + holder.size/2)
+  local mpos = Vector(member.pos.x + member.size/2, member.pos.y + member.size/2)
+  if pos:dist(mpos) <= member.size then
+    local v = math.sqrt(math.pow(holder.vel.x, 2) + math.pow(holder.vel.y, 2))
+    local v2 = math.sqrt(math.pow(member.vel.x, 2) + math.pow(member.vel.x, 2)) 
     
+    local pushStrength = 10
+    if v > v2 then
+      local knockback = 1
+      local memberpos = member.pos
+      local vx = holder.vel.x
+      local vy = holder.vel.y
+      Timer.tween(0.25, memberpos, {x = memberpos.x + vx/knockback, 
+                y = memberpos.y + vy/knockback},
+              'out-elastic')
+    else
+      -- Change ball holders
+      self.holder.previous = holder
+      self.holder.current = member 
+    end
     -- Get velocity of holder and shift the player backwards like in collision
     --[[local vx = math.sqrt(math.pow(holder.vel.x, 2))
     holder.pos.x = holder.pos.x - (-member.vel.x * 25)
     local vy = math.sqrt(math.pow(holder.vel.y, 2))
     holder.pos.y = holder.pos.y - (-member.vel.y * 25)]]
-    
-    -- Change ball holders
-    self.holder.previous = holder
-    self.holder.current = member 
   end
 end
 
@@ -222,25 +243,29 @@ function Ball:score()
     self.vel.x = 0
     self.vel.y = 0
     self.scored = true
+    Game.camerashake:add(5, 1.25)
   end
 end
 
 function Ball:moveBack(dt)
   local center1 = Game.team1.members[1]
-  local center2 = Game.team2.members[2]
+  local center2 = Game.team2.members[1]
+  local forward1 = Game.team1.members[2]
+  local forward2 = Game.team2.members[2]
   
-  local threshold = 1.15
+  local threshold = 20
+  local threshold2 = 5
   
-  if center1.pos.x < FIELD_CENTER_X * threshold and center2.pos.x > 
-                     FIELD_CENTER_X * threshold then
+  if forward1.pos.x < FIELD_CENTER_X - threshold2 and forward2.pos.x > 
+                     FIELD_CENTER_X + threshold2 then
     self.scored = false
   end
   
-  if center1.pos.x > FIELD_CENTER_X * threshold then
-    
+  if center1.pos.x > FIELD_CENTER_X - threshold then
+    center1.pos.x = center1.pos.x - center1.speed * dt
   end
-  if center2.pos.x < FIELD_CENTER_X * threshold then
-    
+  if center2.pos.x < FIELD_CENTER_X + threshold then
+    center2.pos.x = center2.pos.x + center2.speed * dt
   end
   
 end
@@ -265,7 +290,7 @@ function Ball:constrain(dt)
   elseif self.pos.y + self.rad > FIELD_BOTTOM then
     self.vel.y = -self.vel.y * self.restitution
     self.vel.x = self.vel.x * self.restitution
-    self.pos.y = FIELD_BOTTOM - self.rad
+    self.pos.y = FIELD_BOTTOM - 1 - self.rad
     self:move(dt)
   end
 end

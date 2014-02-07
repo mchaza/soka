@@ -13,20 +13,19 @@ Level = {}
 ]]
 
 -- Requires 
-require 'libraries/vector'
-require 'libraries/utils'
+require 'libraries.utils'
 
 --Field Dimenions 
 FIELD_SIZE_X = 70
 FIELD_SIZE_Y = 70
-FIELD_TOP = 15
-FIELD_BOTTOM = 85
-FIELD_LEFT = 8
-FIELD_RIGHT = 92
-FIELD_CENTER_X = 50
-FIELD_CENTER_Y = 50
-GOAL_Y1 = 40
-GOAL_Y2 = 60
+FIELD_TOP = -35
+FIELD_BOTTOM = 35
+FIELD_LEFT = -42
+FIELD_RIGHT = 42
+FIELD_CENTER_X = 0
+FIELD_CENTER_Y = 0
+GOAL_Y1 = -10
+GOAL_Y2 = 10
 
 --Goal Dimenions
 
@@ -43,7 +42,7 @@ function Level:new(x, y, r)
 end
 
 function Level:draw()
-	love.graphics.draw(self.field.image, 0, 0, 0, self.field.width,
+	love.graphics.draw(self.field.image, -50 * sf.x, -50 * sf.y, 0, self.field.width,
                      self.field.height)
   --[[love.graphics.draw(self.player.image, 50, 50, 0, self.player.width,
                      self.player.height) ]]               
