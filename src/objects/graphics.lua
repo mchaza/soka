@@ -13,7 +13,6 @@ Graphics = {}
 ]]
 
 -- Requires 
-require 'libraries.vector'
 require 'objects.team'
 
 --Constants

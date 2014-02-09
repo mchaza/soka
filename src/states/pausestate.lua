@@ -30,14 +30,15 @@ function PauseState:new()
 	return instance
 end
 
-function PauseState:load(game)
-  self.gamestate = game
+function PauseState:load()
+  self.gamestate = Game
+  
 end
 
 function PauseState:draw()
   self.gamestate:draw()
   love.graphics.setColor(0, 0, 0, 155)
-  love.graphics.rectangle('fill', 0, 0, 100 * sf.x, 100 * sf.y)
+  love.graphics.rectangle('fill', -50 * sf.x, -50 * sf.y, 100 * sf.x, 100 * sf.y)
   love.graphics.setColor(255, 255, 255, 255)
 end
 

@@ -110,7 +110,6 @@ function love.update(dt)
 end
 
 -- Key board functions
-
 function love.keypressed(k, unicode)
 	if state.keypressed then
 		state:keypressed(k, unicode)
@@ -124,7 +123,6 @@ function love.keyreleased(k, unicode)
 end
 
 -- Joystick functions
-
 function love.joystickadded(joystick)
 	if state.joystickadded then
 		state:joystickadded(joystick)

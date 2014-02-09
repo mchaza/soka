@@ -82,7 +82,7 @@ function GameState:update(dt)
 	if self.team1 ~= nil then self.team1:update(dt) end
   if self.team2 ~= nil then 
     self.team2:update(dt) 
-    --self:collision(dt)
+    self:collision(dt)
   end
 end
 
@@ -113,6 +113,9 @@ function GameState:keypressed(k, unicode)
   if k == 's' then
     self.camerashake:add(5, 5)
   end
+  if k == 'p' then
+    self.pause()
+  end
 end
 
 function GameState:joystickadded(joystick)
@@ -138,7 +141,7 @@ end
 
 function GameState:pause()
   state = Pause
-  state:load(self)
+  state:load()
 end
 
 function GameState:unpause()

@@ -16,6 +16,8 @@ Level = {}
 require 'libraries.utils'
 
 --Field Dimenions 
+FIELD_SCALE_X = 157
+FIELD_SCALE_Y = 280
 FIELD_SIZE_X = 70
 FIELD_SIZE_Y = 70
 FIELD_TOP = -35
@@ -34,18 +36,14 @@ function Level:new(x, y, r)
 	setmetatable(instance, self)
 	self.__index = self
 
-  instance.field = createGraphic('assets/field.png', 100 * sf.x, 100 * sf.y)
-  --[[instance.player = createGraphic('assets/player.png', sf.x * 10, 
-                                  sf.y * sf.aspect * 10)]]
+  instance.field = createGraphic('assets/field3.png', FIELD_SCALE_X * sf.x, FIELD_SCALE_Y * sf.y)
 
 	return instance
 end
 
 function Level:draw()
-	love.graphics.draw(self.field.image, -50 * sf.x, -50 * sf.y, 0, self.field.width,
-                     self.field.height)
-  --[[love.graphics.draw(self.player.image, 50, 50, 0, self.player.width,
-                     self.player.height) ]]               
+	love.graphics.draw(self.field.image, -FIELD_SCALE_X/2 * sf.x, -FIELD_SCALE_Y/2 * sf.y, 0, self.field.width,
+                     self.field.height)           
 end
 
 function Level:update(dt)

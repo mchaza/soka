@@ -19,7 +19,7 @@ require 'libraries.xboxlove'
 
 -- Statics
 TEAM_SIZE = 6
-MEMBER_SIZE = 2
+MEMBER_SIZE = 1.75
 MEMBER_DEFENDER_SIZE = 2.5
 MEMBER_SEPERATION_DISTANCE = 10
 DEFENDER_INDEX_1 = 4
@@ -38,7 +38,7 @@ function Team:new(x, y, direction, graphics, joystick, otherteam)
   instance.graphics = graphics
 	instance.members, instance.template = instance:createteam(x, y)
   instance.controller = xboxlove.create(joystick)
-  instance.controller:setDeadzone("ALL",0.2)
+  instance.controller:setDeadzone("ALL",0.4)
   instance.score = 0
   instance.otherteam = nil
   

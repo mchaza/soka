@@ -35,7 +35,7 @@ function Member:new(x, y, tx, ty, size, graphics, team)
   -- Velocity stores the movement/spread axis's to determine direction
   -- a member is moving for collision reaction 
   instance.vel = Vector(0, 0)
-  instance.speed = 1.75 * sf.x * sf.aspect
+  instance.speed = 1.5 * sf.x * sf.aspect
   instance.scspeed = instance.speed / 2
   instance.regroupspeed = instance.speed / 3.5
   instance.regroupthres = 0.05
@@ -47,25 +47,27 @@ function Member:new(x, y, tx, ty, size, graphics, team)
 end
 
 function Member:draw()
-	--[[love.graphics.rectangle('fill', (self.pos.x - self.size/2) * sf.x,
+        
+  --[[love.graphics.rectangle('fill', (self.pos.x - self.size/2) * sf.x,
                              (self.pos.y - self.size/2) * sf.y, 
                              self.size * sf.x, 
                              self.size * sf.y * sf.aspect)]]
-         
+        
   love.graphics.draw(self.graphics.image, self.graphics.sprite, 
                     (self.pos.x - self.graphics.spriteSize/2) * sf.x, 
-                    (self.pos.y - self.graphics.spriteSize/2) * sf.y, 
+                    (self.pos.y - self.graphics.spriteSize/1.45) * sf.y, 
                     0, self.graphics.direction * 
                     self.graphics.width, self.graphics.height, 
                     self.graphics.offset , 0 )  
+                  
 end
 
 function Member:drawshadows()
-  love.graphics.setColor(0, 0, 0, 25)
+  love.graphics.setColor(0, 0, 0, 15)
   
-  love.graphics.rectangle('fill', (self.pos.x -1.15) * sf.x,
-                          (self.pos.y + 4) * sf.y,
-                          2 * sf.x, 1.5 * sf.y * sf.aspect)
+  love.graphics.rectangle('fill', (self.pos.x - self.size/2) * sf.x,
+                          (self.pos.y + self.size*1.5) * sf.y,
+                          self.size * sf.x, self.size * sf.y * sf.aspect)
   
   love.graphics.setColor(255, 255, 255, 255)
 end
@@ -171,8 +173,8 @@ end
                       FIELD_RIGHT-self.size/2 - carrydist.x)
   self.pos.y = lesser(self.pos.y, -self.size/2 + carrydist.y, FIELD_TOP - 4, 
                       FIELD_TOP - 4 + self.size/2 - carrydist.y)
-  self.pos.y = greater(self.pos.y, self.size/2 + carrydist.y, FIELD_BOTTOM - 3, 
-                      FIELD_BOTTOM - 3-self.size/2 - carrydist.y)
+  self.pos.y = greater(self.pos.y, self.size/2 + carrydist.y, FIELD_BOTTOM - 4, 
+                      FIELD_BOTTOM - 4-self.size/2 - carrydist.y)
 end
 
 -- Check if collision with other members of own and opposing team
@@ -181,13 +183,23 @@ function Member:collision(member, dt)
   --if self.pos:isNearby(self.size, member.pos) then    
     local v = math.sqrt(math.pow(self.vel.x, 2) + math.pow(self.vel.y, 2))
     local v2 = math.sqrt(math.pow(member.vel.x, 2) + math.pow(member.vel.x, 2))
-    local pushStrength = 10
+    local pushStrength = 1.5
     if v > v2 then
-      member.pos.x = member.pos.x - (-(self.vel.x + self.vel.y) * pushStrength)
-      member.pos.y = member.pos.y - (-(self.vel.x + self.vel.y) * pushStrength)
+      local memberpos = member.pos
+      local vx = self.vel.x
+      local vy = self.vel.y
+      local normal = Vector(vx, vy):perpendicular()
+      Timer.tween(0.5, memberpos, {x = memberpos.x + normal.x * pushStrength, 
+                y = memberpos.y + normal.y * pushStrength},
+              'out-back')
     else
-      self.pos.x = self.pos.x - (-(member.vel.x + member.vel.y) * pushStrength)
-      self.pos.y = self.pos.y - (-(member.vel.x + member.vel.y) * pushStrength)
+      local selfpos = self.pos
+      local vx = member.vel.x
+      local vy = member.vel.y
+      local normal = Vector(vx, vy):perpendicular()
+      Timer.tween(0.5, selfpos, {x = selfpos.x + normal.x * pushStrength, 
+                y = selfpos.y + normal.y * pushStrength},
+              'out-back')
     end
   end
 end
