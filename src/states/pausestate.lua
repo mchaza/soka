@@ -53,6 +53,19 @@ function PauseState:draw()
   love.graphics.setColor(0, 0, 0, 100)
   love.graphics.rectangle('fill', -50 * sf.x, -50 * sf.y, 100 * sf.x, 100 * sf.y)
   love.graphics.setColor(255, 255, 255, 255)
+  
+  love.graphics.print("PAUSED", -5 * sf.x, -35 * sf.y, 0, 4, 3)
+  
+  if self.cont1enabled and self.cont2enabled then
+    love.graphics.print("PRESS START TO UNPAUSE", -18 *sf.x, 0 * sf.y, 0, 4, 3)
+  else
+    if not self.cont1enabled then
+      love.graphics.print("INSERT CONTROLLER ONE", -18 * sf.x, 0 * sf.y, 0, 4, 3)
+    elseif not self.cont2enabled then
+      love.graphics.print("INSERT CONTROLLER TWO", -18 * sf.x, 0 * sf.y, 0, 4, 3)
+    end
+  end
+  
 end
 
 function PauseState:update(dt)

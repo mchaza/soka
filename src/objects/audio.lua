@@ -18,9 +18,11 @@ require 'libraries.utils'
 --Constants
 
 
+T_SOUND_VOLUME = 0.75
 C_BUZZ_VOLUME = 0.10
 C_GOAL_VOLUME = 0.10
-C_MISS_VOLUME = 0.2
+C_MISS_VOLUME = 0.25
+C_END_VOLUME = 0.75
 
 function Audio:new()
 	local instance = {}
@@ -83,24 +85,28 @@ end
 function Audio:kick()
   local index = rng:random(1, #self.teamkick)
   local sound = self.teamkick[index]
+  sound:setVolume(T_SOUND_VOLUME)
   self:push(sound)
 end
 
 function Audio:steal()
   local index = rng:random(1, #self.teamsteal)
   local sound = self.teamsteal[index]
+  sound:setVolume(T_SOUND_VOLUME)
   self:push(sound)
 end
 
 function Audio:call()
   local index = rng:random(1, #self.teamcall)
   local sound = self.teamcall[index]
+  sound:setVolume(T_SOUND_VOLUME)
   self:push(sound)
 end
 
 function Audio:tackle()
   local index = rng:random(1, #self.teamtackle)
   local sound = self.teamtackle[index]
+  sound:setVolume(T_SOUND_VOLUME)
   self:push(sound)
 end
 
@@ -126,6 +132,14 @@ function Audio:cmiss()
     local index = rng:random(1, #self.crowdmiss)
     local sound = self.crowdmiss[index]
     sound:setVolume(C_MISS_VOLUME)
+    self:push(sound)
+  end
+end
+
+function Audio:cend()
+  for _, sound in ipairs(self.crowdbuzz) do
+    sound:setVolume(C_END_VOLUME)
+    sound:isLooping(true)
     self:push(sound)
   end
 end

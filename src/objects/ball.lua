@@ -29,11 +29,11 @@ KICK_SPEED = 70
 PICKUP_DELAY = 0.15
 STEAL_DELAY = 0.2
 PICKUP_RAD = 2
-WIN_SCORE = 11
+WIN_SCORE = 9
 
 BALL_R = 0.15
-BALL_X = FIELD_CENTER_X + BALL_R * 3
-BALL_Y = FIELD_CENTER_Y - BALL_R * 3
+BALL_X = FIELD_CENTER_X + BALL_R * 4
+BALL_Y = FIELD_CENTER_Y - BALL_R * 10
 
 function Ball:new()
 	local instance = {}
@@ -124,7 +124,7 @@ function Ball:move(dt)
 end
 
 function Ball:camerafollow(dt)
-  
+  --camera:lookAt(self.pos.x, self.pos.y)
 end
 function Ball:carry()
   local holder = self.holder.current
@@ -304,6 +304,11 @@ function Ball:wincondition()
   if Game.team2.score >= WIN_SCORE then
     self.win = true
     self.winner = 2
+  end
+  if self.win then
+    Game.camerashake:add(3, 99999)
+    audio:cend()
+    audio:cgoal()
   end
 end
 

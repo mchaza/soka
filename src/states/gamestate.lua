@@ -121,12 +121,16 @@ function GameState:initcontrollers()
     self.team1.controller = xboxlove.create(joysticks[1])
     self.team1.controller:setDeadzone("ALL",0.25)
   else
+    self.team1.gamecontrolenable = false
+    self.team1.gconttimer = 0.25
     self:pause()
   end
   if joysticks[2] ~= nil then
     self.team2.controller = xboxlove.create(joysticks[2])
     self.team2.controller:setDeadzone("ALL",0.25)
   else
+    self.team2.gamecontrolenable = false
+    self.team2.gconttimer = 0.25
     self:pause()
   end
 end
