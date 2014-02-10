@@ -59,7 +59,10 @@ function GameState:load()
   self.team1.otherteam = self.team2
   self.team2.otherteam = self.team1
   
-  self:initControllers()
+  love.audio.stop()
+  audio:cbuzz()
+  
+  self:initcontrollers()
 end
 
 function GameState:draw()
@@ -100,17 +103,19 @@ end
 function GameState:keypressed(k, unicode)
 	if k == 'escape' then
      love.event.quit()
-		 --self:pause()
   end
   if k == 'r' then
     switchState(Game)
+  end
+  if k == 'p' then
+    self:pause()
   end
 end
 function GameState:joystickadded(joystick)
 end
 function GameState:joystickremoved(joystick)
 end
-function GameState:initControllers()
+function GameState:initcontrollers()
   local joysticks = love.joystick.getJoysticks()
   if joysticks[1] ~= nil then
     self.team1.controller = xboxlove.create(joysticks[1])
@@ -126,10 +131,12 @@ function GameState:initControllers()
   end
 end
 function GameState:pause()
+  love.audio.pause()
   state = Pause
   state:load()
 end
 
 function GameState:unpause()
+  love.audio.resume()
   state = Game
 end

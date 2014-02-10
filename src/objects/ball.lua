@@ -29,6 +29,7 @@ KICK_SPEED = 70
 PICKUP_DELAY = 0.15
 STEAL_DELAY = 0.2
 PICKUP_RAD = 2
+WIN_SCORE = 11
 
 BALL_R = 0.15
 BALL_X = FIELD_CENTER_X + BALL_R * 3
@@ -65,6 +66,10 @@ function Ball:new()
   instance.cansteal = true
   instance.stealtimer = 0.0
   
+  -- Win condition
+  instance.win = false
+  instance.winner = 0
+  
 	return instance
 end
 
@@ -78,11 +83,13 @@ function Ball:draw()
 end
 
 function Ball:update(dt)
+  if self.win then
+    return
+  end
   if self.scored then
     self:moveBack(dt)
     return
   end
-  
   if self.holder.current then
     self:carry(dt)
   else
@@ -90,6 +97,8 @@ function Ball:update(dt)
     self:score()
     self:constrain(dt)
   end
+  self:wincondition()
+  self:camerafollow(dt)
   self:timer(dt)
 end
 
@@ -97,7 +106,7 @@ function Ball:move(dt)
   -- Update position based on velocity
   self.pos.x = self.pos.x + self.vel.x*dt
   self.pos.y = self.pos.y + self.vel.y*dt
-  
+ 
   -- Need to do something about acceleration but
   -- right now this setup can do for now
   
@@ -114,6 +123,9 @@ function Ball:move(dt)
   end
 end
 
+function Ball:camerafollow(dt)
+  
+end
 function Ball:carry()
   local holder = self.holder.current
   --Position ball at bottom of feet
@@ -132,7 +144,11 @@ end
 function Ball:kick(member, dt)
   local controls = self.holder.current.team.controller
   
-  if controls.Buttons.A or controls.Buttons.RB  then
+  if controls.Buttons.A or controls.Buttons.B 
+     or controls.Buttons.X or controls.Buttons.Y
+     or controls.Buttons.RB or controls.Buttons.LB
+     or controls.Buttons.RT or controls.Buttons.LT
+     or controls.Buttons.LeftStick or controls.Buttons.RightStick then
     -- Charging up kick
     self.kicking = true
     self.holder.current.kicking = true
@@ -143,7 +159,12 @@ function Ball:kick(member, dt)
     end
   end
   
-  if self.kicking and not controls.Buttons.A and not controls.Buttons.RB then
+  if self.kicking and not controls.Buttons.A and not controls.Buttons.B 
+     and not controls.Buttons.X and not controls.Buttons.X
+     and not controls.Buttons.Y and not controls.Buttons.RB
+     and not controls.Buttons.LB and not controls.Buttons.RT
+     and not controls.Buttons.LT and not controls.Buttons.LeftStick
+     and not controls.Buttons.RightStick then
     
     local direction = { }
     direction.x = controls.Axes.LeftX
@@ -178,8 +199,11 @@ function Ball:kick(member, dt)
     self.canpickup = false
     self.pickuptimer = PICKUP_DELAY
     
-    -- Play sounds
+    -- Camera Shake
    Game.camerashake:add(3, 0.25)
+   
+   -- Play sound
+   audio:kick()
   end
   
 end
@@ -195,6 +219,7 @@ function Ball:pickup(member)
     self.holder.previous = self.holder.current
     self.holder.current = member
     self.vel = Vector:new(0, 0)
+    audio:call()
   end
 end
 
@@ -233,6 +258,9 @@ function Ball:steal(member, dt)
     
     self.cansteal = false
     self.stealtimer = STEAL_DELAY
+    
+    -- Play sound
+    audio:steal()
   end
 end
 
@@ -241,11 +269,22 @@ function Ball:score()
   -- Team 1 goal
   if self.pos.x + self.rad * 2  >= FIELD_RIGHT and self.pos.y > GOAL_Y1 and self.pos.y < GOAL_Y2 then
     score = true
+    Game.team1.score = Game.team1.score + 1
+    if self.holder.previous.team == Game.team2 then
+      audio:cmiss()
+    else
+      audio:cgoal()
+    end
   end
   -- Team 2 goal 
   if self.pos.x<= FIELD_LEFT and self.pos.y > GOAL_Y1 and self.pos.y < GOAL_Y2 then
     score = true
-    -- Set score here
+    Game.team2.score = Game.team2.score + 1  
+    if self.holder.previous.team == Game.team1 then
+      audio:cmiss()
+    else
+      audio:cgoal()
+    end
   end
   if score then
     self.pos.x = BALL_X
@@ -254,6 +293,17 @@ function Ball:score()
     self.vel.y = 0
     self.scored = true
     Game.camerashake:add(5, 1.25)
+  end
+end
+
+function Ball:wincondition()
+  if Game.team1.score >= WIN_SCORE then
+    self.win = true
+    self.winner = 1
+  end
+  if Game.team2.score >= WIN_SCORE then
+    self.win = true
+    self.winner = 2
   end
 end
 
@@ -286,11 +336,13 @@ function Ball:constrain(dt)
     self.vel.y = self.vel.y * self.restitution
     self.pos.x = FIELD_LEFT
     self:move(dt)
+    self:miss(-1)
   elseif self.pos.x + self.rad > FIELD_RIGHT then
     self.vel.x = -self.vel.x * self.restitution
     self.vel.y = self.vel.y * self.restitution
     self.pos.x = FIELD_RIGHT - self.rad
     self:move(dt)
+    self:miss(1)
   end
   if self.pos.y < FIELD_TOP then
     self.vel.y = -self.vel.y * self.restitution
@@ -317,4 +369,18 @@ function Ball:timer(dt)
     else
       self.cansteal = true
     end
+end
+
+function Ball:miss(direction)
+  if self.holder.previous ~= nil then
+    if direction == 1 then
+      if self.holder.previous.team == Game.team1 then
+        audio:cmiss()
+      end
+    else
+      if self.holder.previous.team == Game.team2 then
+        audio:cmiss()
+      end
+    end
+  end
 end

@@ -3,12 +3,11 @@ PauseState = {}
 --[[
 
 	---- Overview ----
-  Pauses the game when player presses escape, then q for quit and r to restart 
-  and m for menu and p to unpause. When controllers disconnect the pause is triggered explaining that
-  a controller needs to be plugged in before unpausing.
+  Pause is triggered when two controllers aren't plugged in upon game start, and requests
+  players to insert 2 controllers. It wont allow users to unexit pause until two controllers have been inserted and are active. 
   
 	---- Last Update ----
-  Added Pause functionality 
+  Added Controller functionality 
   
 	---- Required Update ----
   Requires text to be displayed and game options.
@@ -28,6 +27,8 @@ function PauseState:new()
   instance.gamestate = nil
   instance.cont1enabled = false
   instance.cont2enabled = false
+  instance.canunpause = false
+  instance.pausetimer = 0.0
 
 	return instance
 end
@@ -41,6 +42,10 @@ function PauseState:load()
   if self.gamestate.team2.controller ~= nil then
     self.cont2enabled = true
   end
+  self.cont1enabled = false
+  self.cont2enabled = false
+  self.canunpause = false
+  self.pausetimer = 0.25
 end
 
 function PauseState:draw()
@@ -56,6 +61,7 @@ function PauseState:update(dt)
   
   if cont1 ~= nil then
     if cont1:getJoystick():isConnected() then
+       cont1:update(dt)
        self.cont1enabled = true 
     else
       self.cont1enabeld = false
@@ -63,24 +69,32 @@ function PauseState:update(dt)
   end
   if cont2 ~= nil then
     if cont2:getJoystick():isConnected() then
+       cont2:update(dt)
        self.cont2enabled = true 
     else
       self.cont2enabled = false
     end
   end
+  self:gamecontrols()
+  self.pausetimer = self.pausetimer - dt
+  if self.pausetimer <= 0.0 then
+    self.canunpause = true
+  end
+end
+
+function PauseState:gamecontrols()
+  local cont1 = self.gamestate.team1.controller
+  local cont2 = self.gamestate.team2.controller
+  if self.cont1enabled == true and self.cont2enabled == true then
+    if (cont1.Buttons.Start or cont2.Buttons.Start) and self.canunpause then
+      self.gamestate:unpause()
+    end
+  end
 end
 
 function PauseState:keypressed(k, unicode)
-  if k == 'q' then
+  if k == 'escape' then
     love.event.quit()
-  end
-  if self.cont1enabled == true and self.cont2enabled == true then
-    if k == 'p' then
-      self.gamestate:unpause()
-    end
-    if k == 'r' then
-      switchState(Game)
-    end
   end
 end
 
@@ -99,10 +113,8 @@ function PauseState:joystickadded(joystick)
   if self.gamestate.team1.controller == nil then
     self.gamestate.team1.controller = xboxlove.create(joystick)
     self.gamestate.team1.controller:setDeadzone("ALL",0.25)
-    print("ADDED PLAYER 1 CONTROLLER")
   elseif self.gamestate.team2.controller == nil then
     self.gamestate.team2.controller = xboxlove.create(joystick)
     self.gamestate.team2.controller:setDeadzone("ALL",0.25)
-    print("ADDED PLAYER 2 CONTROLLER")
   end
 end

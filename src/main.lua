@@ -50,7 +50,7 @@ RESO_HEIGHT = 1080
 FULL_SCREEN = true
 -- DEBUG MODE 
 -- Debug mode basically sets the resolution to 1024x768 and not fullscreen
-DEBUG = true
+DEBUG = false
 
 if DEBUG then
   RESO_WIDTH = 1024
@@ -113,6 +113,7 @@ end
 function love.update(dt)
 	state:update(dt)
   Timer.update(dt)
+  audio:update(dt)
 end
 
 -- Key board functions

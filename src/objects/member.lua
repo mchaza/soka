@@ -201,6 +201,7 @@ function Member:collision(member, dt)
                 y = selfpos.y + normal.y * pushStrength},
               'out-back')
     end
+    --audio:tackle()
   end
 end
 

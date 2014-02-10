@@ -17,14 +17,25 @@ require 'libraries.utils'
 
 --Constants
 
+
+C_BUZZ_VOLUME = 0.10
+C_GOAL_VOLUME = 0.10
+C_MISS_VOLUME = 0.2
+
 function Audio:new()
 	local instance = {}
 	setmetatable(instance, self)
 	self.__index = self
 
   -- Sounds
-  instance.goal1 = loadSounds('commentators/goal/goal1')
-  instance.goal2 = loadSounds('commentators/goal/goal2')
+  instance.teamkick = loadSounds('team/kick')
+  instance.teamsteal = loadSounds('team/steal')
+  instance.teamtackle = loadSounds('team/tackle')
+  instance.teamcall = loadSounds('team/call')
+  
+  instance.crowdbuzz = loadSounds('crowd/buzz')
+  instance.crowdgoal = loadSounds('crowd/goal')
+  instance.crowdmiss = loadSounds('crowd/miss')
   
   instance.stack = {}
 
@@ -36,19 +47,21 @@ function Audio:draw()
 end
 
 function Audio:update(dt) 
-  for i=0, #self.stack do
-    if self.stack[i]:isStopped() then
-      self:pop(i)
+  for i=1, #self.stack do
+    if self.stack[i] ~= nil then
+      if self.stack[i]:isStopped() then
+        self:pop(i)
+      end
     end
   end
 end
 
-function push(sound)
+function Audio:push(sound)
   sound:play()
   table.insert(self.stack, sound)
 end
 
-function pop(index)
+function Audio:pop(index)
   if self.stack[index]:isPlaying() then 
     love.audio.stop( self.stack[index] )
   end
@@ -67,3 +80,52 @@ function loadSounds(file)
   return sounds
 end
 
+function Audio:kick()
+  local index = rng:random(1, #self.teamkick)
+  local sound = self.teamkick[index]
+  self:push(sound)
+end
+
+function Audio:steal()
+  local index = rng:random(1, #self.teamsteal)
+  local sound = self.teamsteal[index]
+  self:push(sound)
+end
+
+function Audio:call()
+  local index = rng:random(1, #self.teamcall)
+  local sound = self.teamcall[index]
+  self:push(sound)
+end
+
+function Audio:tackle()
+  local index = rng:random(1, #self.teamtackle)
+  local sound = self.teamtackle[index]
+  self:push(sound)
+end
+
+function Audio:cbuzz()
+  for _, sound in ipairs(self.crowdbuzz) do
+    sound:setVolume(C_BUZZ_VOLUME)
+    sound:isLooping(true)
+    self:push(sound)
+  end
+end
+
+function Audio:cgoal()
+  for i=1, 6 do
+    local index = rng:random(1, #self.crowdgoal)
+    local sound = self.crowdgoal[index]
+    sound:setVolume(C_GOAL_VOLUME)
+    self:push(sound)
+  end
+end
+
+function Audio:cmiss()
+  for i=1, 6 do
+    local index = rng:random(1, #self.crowdmiss)
+    local sound = self.crowdmiss[index]
+    sound:setVolume(C_MISS_VOLUME)
+    self:push(sound)
+  end
+end

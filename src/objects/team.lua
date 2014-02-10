@@ -40,7 +40,8 @@ function Team:new(x, y, direction, graphics)
   instance.controller = nil
   instance.score = 0
   instance.otherteam = nil
-  
+  instance.gamecontrolenable = true
+  instance.gconttimer = 0.0
 	return instance
 end
 
@@ -61,8 +62,27 @@ function Team:update(dt)
 	for _, member in ipairs(self.members) do
 		member:update(dt)
 	end
+  if self.gamecontrolenable then
+    self:gamecontrols()
+  else
+    self.gconttimer = self.gconttimer - dt
+    if self.gconttimer <= 0.0 then
+      self.gamecontrolenable = true
+    end
+  end
 end
-
+function Team:gamecontrols()
+  if self.controller.Buttons.Back then
+    self.gamecontrolenable = false
+    self.gconttimer = 0.25
+    switchState(Game)
+  end
+  if self.controller.Buttons.Start then
+    self.gamecontrolenable = false
+    self.gconttimer = 0.25
+    Game:pause()
+  end
+end
 function Team:createteam(x, y)
 	local members = {}
 	local formation = {}
