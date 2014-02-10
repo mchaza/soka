@@ -24,8 +24,8 @@ function Graphics:new()
 	setmetatable(instance, self)
 	self.__index = self
 
-  instance.team1 = instance:initTeamGfx('assets/TeamOne.png', 1)
-  instance.team2 = instance:initTeamGfx('assets/TeamTwo.png', -1)
+  instance.team1 = instance:initTeamGfx('assets/gfx/TeamOne.png', 1)
+  instance.team2 = instance:initTeamGfx('assets/gfx/TeamTwo.png', -1)
 
 	return instance
 end

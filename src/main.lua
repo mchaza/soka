@@ -24,6 +24,8 @@ require 'states.menustate'
 require 'states.gamestate'
 require 'states.pausestate'
 
+require 'objects.audio'
+
 -- Hump Library
 
 Camera = require "libraries.hump.camera"
@@ -48,7 +50,7 @@ RESO_HEIGHT = 1080
 FULL_SCREEN = true
 -- DEBUG MODE 
 -- Debug mode basically sets the resolution to 1024x768 and not fullscreen
-DEBUG = false
+DEBUG = true
 
 if DEBUG then
   RESO_WIDTH = 1024
@@ -64,7 +66,7 @@ options = {	resolution = {{ width = RESO_WIDTH, height = RESO_HEIGHT }},
 		  	fullscreen = { FULL_SCREEN },
 		  	fullscreentype = 'desktop',
 		  	borderless = { false },
-		  	vsync = { false },
+		  	vsync = { true },
 		  	resizable = { false },
 		  	scorelimit = { 7 },
 		  	bgcolour = { r = 150, g = 205, b= 160 },
@@ -77,6 +79,9 @@ controllers = {}
 
 -- Camera
 camera = Camera(0, 0)
+
+-- Audio
+audio = Audio:new()
 
 -- States
 
@@ -102,6 +107,7 @@ function love.draw()
 	camera:attach()
   state:draw()
   camera:detach()
+  love.graphics.print("FPS " .. love.timer.getFPS(), 10, 10)
 end
 
 function love.update(dt)

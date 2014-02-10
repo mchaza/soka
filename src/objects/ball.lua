@@ -31,8 +31,8 @@ STEAL_DELAY = 0.2
 PICKUP_RAD = 2
 
 BALL_R = 0.15
-BALL_X = FIELD_CENTER_X + BALL_R * 2 
-BALL_Y = FIELD_CENTER_Y + BALL_R * 2
+BALL_X = FIELD_CENTER_X + BALL_R * 3
+BALL_Y = FIELD_CENTER_Y - BALL_R * 3
 
 function Ball:new()
 	local instance = {}
@@ -65,23 +65,16 @@ function Ball:new()
   instance.cansteal = true
   instance.stealtimer = 0.0
   
-  instance.debugtimer = 0.0
-  instance.debugtext = ""
-  
 	return instance
 end
 
 function Ball:draw()
-  love.graphics.setColor(0, 0, 0, 255)
-  love.graphics.print(tostring(self.debugtext), -100, 400, 0, 2, 2)
-  love.graphics.setColor(255, 255, 255)
-  
   if self.scored then
     return
   end
   
 	love.graphics.circle("fill", (self.pos.x - self.rad) * sf.x, 
-						(self.pos.y - self.rad) * sf.y, self.rad * 2 * sf.x * sf.aspect, 75)
+						(self.pos.y ) * sf.y, self.rad * 2 * sf.x * sf.aspect, 75)
 end
 
 function Ball:update(dt)
@@ -157,11 +150,7 @@ function Ball:kick(member, dt)
     direction.y = controls.Axes.LeftY
     
     if direction.x == 0 and direction.y == 0 then
-      if self.holder.current.team.direction == 0 then
-        direction.x = 0.5
-      else
-        direction.x = -0.5
-      end
+      direction.x = self.holder.current.graphics.direction
     end
     
     local vx = direction.x * KICK_SPEED * self.strength
@@ -171,7 +160,7 @@ function Ball:kick(member, dt)
     self.vel = Vector(vx,vy)
     
     -- Apple Kick Back Tween to holder
-    local kickback = 30
+    local kickback = 15
     local holderpos = self.holder.current.pos
     Timer.tween(0.25, holderpos, {x = holderpos.x - vx/kickback, 
                 y = holderpos.y - vy/kickback},
@@ -265,9 +254,6 @@ function Ball:score()
     self.vel.y = 0
     self.scored = true
     Game.camerashake:add(5, 1.25)
-    print(self.debugtimer)
-    self.debugtext = self.debugtimer
-    self.debugtimer = 0
   end
 end
 
@@ -331,6 +317,4 @@ function Ball:timer(dt)
     else
       self.cansteal = true
     end
-    
-    self.debugtimer = self.debugtimer + dt
 end

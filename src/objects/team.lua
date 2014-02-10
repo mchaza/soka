@@ -28,7 +28,7 @@ DEFENDER_INDEX_2 = 5
 TEAM1_SPAWN = {{x = 4, y = 0}, {x = 0, y = 6}, {x = 0, y = 12}, {x = 0, y = -12}, {x = 0, y = -6}}
 TEAM2_SPAWN = {{x = -4, y = 0}, {x = 0, y = -6}, {x = 0, y = -12}, {x = 0, y = 12}, {x = 0, y = 6}}
 
-function Team:new(x, y, direction, graphics, joystick, otherteam)
+function Team:new(x, y, direction, graphics)
 	local instance = {}
 	setmetatable(instance, self)
 	self.__index = self
@@ -37,8 +37,7 @@ function Team:new(x, y, direction, graphics, joystick, otherteam)
   instance.direction = direction
   instance.graphics = graphics
 	instance.members, instance.template = instance:createteam(x, y)
-  instance.controller = xboxlove.create(joystick)
-  instance.controller:setDeadzone("ALL",0.4)
+  instance.controller = nil
   instance.score = 0
   instance.otherteam = nil
   
@@ -100,17 +99,3 @@ function calcSpawnPoint(degree, origin, radius)
 	point.y = radius * math.sin(degree * math.pi/180) + origin.y
 	return point
 end
-
--- Removed Features
-
--- Defenders get greater size
-		--[[if i == DEFENDER_INDEX_1 or i == DEFENDER_INDEX_2 then
-			size = MEMBER_DEFENDER_SIZE
-    end]]
-
--- Member - Member Collison Check
-    --[[for _, mem in ipairs(self.members) do
-      if mem ~= member then
-        member:collision(mem, dt)
-      end
-    end--]]

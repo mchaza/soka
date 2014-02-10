@@ -54,15 +54,12 @@ function GameState:load()
   self.graphics = Graphics:new()
   
   self.ball = Ball:new()
-  local joysticks = love.joystick.getJoysticks()
-	if joysticks[1] ~= nil then
-    self.team1 = Team:new(-25, 0, 0, self.graphics.team1, joysticks[1])
-  end
-  if joysticks[2] ~= nil then
-    self.team2 = Team:new(25, 0, 180, self.graphics.team2, joysticks[2])
-    self.team1.otherteam = self.team2
-    self.team2.otherteam = self.team1
-  end
+  self.team1 = Team:new(-25, 0, 0, self.graphics.team1)
+  self.team2 = Team:new(25, 0, 180, self.graphics.team2)
+  self.team1.otherteam = self.team2
+  self.team2.otherteam = self.team1
+  
+  self:initControllers()
 end
 
 function GameState:draw()
@@ -79,11 +76,9 @@ function GameState:update(dt)
   self.camerashake:update()
   self.level:update(dt)
 	self.ball:update(dt)
-	if self.team1 ~= nil then self.team1:update(dt) end
-  if self.team2 ~= nil then 
-    self.team2:update(dt) 
-    self:collision(dt)
-  end
+	self.team1:update(dt)
+  self.team2:update(dt) 
+  self:collision(dt)
 end
 
 -- Check collisions between team members 
@@ -104,41 +99,32 @@ end
 
 function GameState:keypressed(k, unicode)
 	if k == 'escape' then
-      love.event.quit()
+     love.event.quit()
 		 --self:pause()
   end
   if k == 'r' then
     switchState(Game)
   end
-  if k == 's' then
-    self.camerashake:add(5, 5)
-  end
-  if k == 'p' then
-    self.pause()
-  end
 end
-
 function GameState:joystickadded(joystick)
-  if self.team1 == nil then
-    self:load()
-  elseif self.team2 == nil then
-    self:load()
-  end
 end
-
 function GameState:joystickremoved(joystick)
-  if self.team1 ~= nil then
-    if joystick == self.team1.controller:getJoystick() then
-      self.team1 = nil
-    end
+end
+function GameState:initControllers()
+  local joysticks = love.joystick.getJoysticks()
+  if joysticks[1] ~= nil then
+    self.team1.controller = xboxlove.create(joysticks[1])
+    self.team1.controller:setDeadzone("ALL",0.25)
+  else
+    self:pause()
   end
-  if self.team ~= nil then
-    if joystick == self.team2.controller:getJoystick() then
-      self.team2 = nil
-    end
+  if joysticks[2] ~= nil then
+    self.team2.controller = xboxlove.create(joysticks[2])
+    self.team2.controller:setDeadzone("ALL",0.25)
+  else
+    self:pause()
   end
 end
-
 function GameState:pause()
   state = Pause
   state:load()
