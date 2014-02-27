@@ -29,6 +29,8 @@ function PauseState:new()
   instance.cont2enabled = false
   instance.canunpause = false
   instance.pausetimer = 0.0
+  
+  instance.font = nil
 
 	return instance
 end
@@ -46,6 +48,8 @@ function PauseState:load()
   self.cont2enabled = false
   self.canunpause = false
   self.pausetimer = 0.25
+  
+  self.font = love.graphics.newFont('assets/gfx/font.ttf', 5 * sf.x)
 end
 
 function PauseState:draw()
@@ -54,15 +58,24 @@ function PauseState:draw()
   love.graphics.rectangle('fill', -50 * sf.x, -50 * sf.y, 100 * sf.x, 100 * sf.y)
   love.graphics.setColor(255, 255, 255, 255)
   
-  love.graphics.print("PAUSED", -5 * sf.x, -35 * sf.y, 0, 4, 3)
+  love.graphics.setFont(self.font)
+  local text = "PAUSED"
+	local txtwidth = self.font:getWidth(text)
+  love.graphics.print(text, -txtwidth/2, -35 * sf.y)
   
   if self.cont1enabled and self.cont2enabled then
-    love.graphics.print("PRESS START TO UNPAUSE", -18 *sf.x, 0 * sf.y, 0, 4, 3)
+    text = "PRESS START TO UNPAUSE"
+    txtwidth = self.font:getWidth(text)
+    love.graphics.print(text, -txtwidth/2, 0 * sf.y)
   else
     if not self.cont1enabled then
-      love.graphics.print("INSERT CONTROLLER ONE", -18 * sf.x, 0 * sf.y, 0, 4, 3)
+      text = "INSERT CONTROLLER ONE"
+      txtwidth = self.font:getWidth(text)
+      love.graphics.print(text, -txtwidth/2, 0 * sf.y)
     elseif not self.cont2enabled then
-      love.graphics.print("INSERT CONTROLLER TWO", -18 * sf.x, 0 * sf.y, 0, 4, 3)
+      text = "INSERT CONTROLLER TWO"
+      txtwidth = self.font:getWidth(text)
+      love.graphics.print(text, -txtwidth/2, 0 * sf.y)
     end
   end
   

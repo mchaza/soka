@@ -44,6 +44,7 @@ function GameState:new()
 	instance.team1 = nil
 	instance.team2 = nil
   instance.graphics = nil
+  instance.fpsfont = nil
   
 	return instance
 end
@@ -63,6 +64,8 @@ function GameState:load()
   audio:cbuzz()
   
   self:initcontrollers()
+  
+  self.fpsfont = love.graphics.newFont('assets/gfx/font.ttf', 1 * sf.x)
 end
 
 function GameState:draw()
@@ -73,6 +76,8 @@ function GameState:draw()
   if self.team2 ~= nil then  self.team2:draw() end
   
   self.ball:draw()
+  love.graphics.setFont(self.fpsfont)
+  love.graphics.print("FPS " .. love.timer.getFPS(), -50 * sf.x, -50 * sf.y)
 end
 
 function GameState:update(dt)
@@ -109,6 +114,9 @@ function GameState:keypressed(k, unicode)
   end
   if k == 'p' then
     self:pause()
+  end
+  if k == 's' then
+    self.camerashake:add(5, 0.25)
   end
 end
 function GameState:joystickadded(joystick)

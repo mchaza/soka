@@ -34,102 +34,43 @@ function MenuState:new()
 	instance.index = 1
 	instance.subindex = 1
 	instance.submenu = false
-
+  instance.image = nil
+  instance.transparency = 255
+  instance.skiptimer = nil
 	return instance
 end
 
 function MenuState:load()
-	self:setoptions()
+  self.skiptimer = Timer.add(5, function() switchState(Game) end)
+  self.image = love.graphics.newImage('assets/gfx/splash.png')
+  
+	--self:setoptions()
 end
 
 function MenuState:draw()
-	love.graphics.print('Menu', 10, 10)
-
-	activesubmenu = false
-
-	-- Display the list of options
-	for i, option in ipairs(self.options) do
-		option:display(10, i * 30)
-		if(option.active) then
-			for i, suboption in ipairs(option.options) do
-				suboption:display(150, 100 + i * 30)
-			end
-			self.submenu = true
-			activesubmenu = true
-		end
-	end
-	if not activesubmenu then
-		self.submenu = false
-		self.subindex = 1
-	end
-
-	if self.submenu then
-		love.graphics.rectangle('fill', 350, 100 + self.subindex * 30, 10, 10)
-	else
-		love.graphics.rectangle('fill', 150, self.index * 30, 10, 10)
-	end
+  love.graphics.setColor(255, 255, 255, self.transparency)
+  love.graphics.draw(self.image, -50 * sf.x, -50 * sf.y, 0,
+    (100*sf.x)/self.image:getWidth(), (100*sf.y)/self.image:getHeight())
 end
 
 function MenuState:update(dt)
+  self.transparency = self.transparency - 50 * dt
 end
 
 function MenuState:keypressed(k, unicode)
 	if k == 'escape' then
 		love.event.quit()
-	end
-	if k == 'up' then
-		-- If sub menu is active then adjust sub menu index 
-		if self.submenu  then
-			self.subindex = decreaseIndex(self.subindex, 
-										  #self.options[self.index].options)
-		else
-			self.index = decreaseIndex(self.index, #self.options)
-		end
-	end
-	if k == 'down' then
-		if self.submenu then
-			self.subindex = increaseIndex(self.subindex, 
-										  #self.options[self.index].options)
-		else
-			self.index = increaseIndex(self.index, #self.options)
-		end
-	end	
-
-	-- Call option modification functions, each option can have 3 assigned functions
-	if k == 'right' then
-		if self.submenu then
-			self.options[self.index].options[self.subindex]:increaseoption()
-		else
-			self.options[self.index]:increaseoption()
-		end
-	end
-	if k == 'left' then
-		if self.submenu then
-			self.options[self.index].options[self.subindex]:decreaseoption()
-		else
-			self.options[self.index]:decreaseoption()
-		end
-	end
-	if k == ' ' then
-		if self.submenu then
-			self.options[self.index].options[self.subindex]:optionaction()
-		else
-			self.options[self.index]:optionaction()
-		end
-	end
+	else
+    Timer.cancel(self.skiptimer)
+    switchState(Game)
+  end
 end
 
 function MenuState:joystickpressed(joystick, button)
-	
+  Timer.cancel(self.skiptimer)
+	switchState(Game)
 end
 
-function MenuState:joystickreleased(joystick, button)
-	
-end
-
-function MenuState:joystickaxis( joystick, axis, value )
-	
-end
 
 -- Hardcoded defined options, could be done in a file and read to save
 -- code space. 
@@ -174,6 +115,74 @@ function MenuState:setoptions()
 	table.insert(self.options, Option:new(displayname, nil, nil, 
 										  quitaction, "QUIT TO DESKTOP", { '' }))
 
+end
+
+function MenuState:drawoptions()
+  activesubmenu = false
+
+	-- Display the list of options
+	for i, option in ipairs(self.options) do
+		option:display(10, i * 30)
+		if(option.active) then
+			for i, suboption in ipairs(option.options) do
+				suboption:display(150, 100 + i * 30)
+			end
+			self.submenu = true
+			activesubmenu = true
+		end
+	end
+	if not activesubmenu then
+		self.submenu = false
+		self.subindex = 1
+	end
+
+	if self.submenu then
+		love.graphics.rectangle('fill', 350, 100 + self.subindex * 30, 10, 10)
+	else
+		love.graphics.rectangle('fill', 150, self.index * 30, 10, 10)
+	end
+end
+function MenuState:updateoptions(k)
+  if k == 'up' then
+		-- If sub menu is active then adjust sub menu index 
+		if self.submenu  then
+			self.subindex = decreaseIndex(self.subindex, 
+										  #self.options[self.index].options)
+		else
+			self.index = decreaseIndex(self.index, #self.options)
+		end
+	end
+	if k == 'down' then
+		if self.submenu then
+			self.subindex = increaseIndex(self.subindex, 
+										  #self.options[self.index].options)
+		else
+			self.index = increaseIndex(self.index, #self.options)
+		end
+	end	
+
+	-- Call option modification functions, each option can have 3 assigned functions
+	if k == 'right' then
+		if self.submenu then
+			self.options[self.index].options[self.subindex]:increaseoption()
+		else
+			self.options[self.index]:increaseoption()
+		end
+	end
+	if k == 'left' then
+		if self.submenu then
+			self.options[self.index].options[self.subindex]:decreaseoption()
+		else
+			self.options[self.index]:decreaseoption()
+		end
+	end
+	if k == ' ' then
+		if self.submenu then
+			self.options[self.index].options[self.subindex]:optionaction()
+		else
+			self.options[self.index]:optionaction()
+		end
+	end
 end
 
 function increaseIndex(index, limit)

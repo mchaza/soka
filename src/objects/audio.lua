@@ -18,11 +18,11 @@ require 'libraries.utils'
 --Constants
 
 
-T_SOUND_VOLUME = 0.75
-C_BUZZ_VOLUME = 0.10
-C_GOAL_VOLUME = 0.10
-C_MISS_VOLUME = 0.25
-C_END_VOLUME = 0.75
+T_SOUND_VOLUME = 1.00
+C_BUZZ_VOLUME = 0.5
+C_GOAL_VOLUME = 0.50
+C_MISS_VOLUME = 1.25
+C_END_VOLUME = 2.0
 
 function Audio:new()
 	local instance = {}
@@ -39,6 +39,8 @@ function Audio:new()
   instance.crowdgoal = loadSounds('crowd/goal')
   instance.crowdmiss = loadSounds('crowd/miss')
   
+  love.audio.setPosition( 0, 0, 0 )
+  
   instance.stack = {}
 
 	return instance
@@ -52,7 +54,7 @@ function Audio:update(dt)
   for i=1, #self.stack do
     if self.stack[i] ~= nil then
       if self.stack[i]:isStopped() then
-        self:pop(i)
+        --self:pop(i)
       end
     end
   end
@@ -72,7 +74,7 @@ end
 
 function loadSounds(file)
   local dir = "assets/sound/"
-  local files = scandir("assets/sound/" .. file)
+  local files = love.filesystem.getDirectoryItems( "assets/sound/" .. file )
   local sounds = {}
   local sound = nil
   for i = 3, #files do
@@ -113,16 +115,17 @@ end
 function Audio:cbuzz()
   for _, sound in ipairs(self.crowdbuzz) do
     sound:setVolume(C_BUZZ_VOLUME)
-    sound:isLooping(true)
+    sound:setLooping(true)
     self:push(sound)
   end
 end
 
-function Audio:cgoal()
+function Audio:cgoal(x, y)
   for i=1, 6 do
     local index = rng:random(1, #self.crowdgoal)
     local sound = self.crowdgoal[index]
     sound:setVolume(C_GOAL_VOLUME)
+    sound:setPosition( x, y, 0 )
     self:push(sound)
   end
 end
@@ -139,7 +142,7 @@ end
 function Audio:cend()
   for _, sound in ipairs(self.crowdbuzz) do
     sound:setVolume(C_END_VOLUME)
-    sound:isLooping(true)
+    sound:setLooping(true)
     self:push(sound)
   end
 end

@@ -69,7 +69,7 @@ options = {	resolution = {{ width = RESO_WIDTH, height = RESO_HEIGHT }},
 		  	vsync = { true },
 		  	resizable = { false },
 		  	scorelimit = { 7 },
-		  	bgcolour = { r = 150, g = 205, b= 160 },
+		  	bgcolour = { r = 168, g = 235, b= 168 },
 		  	mouse = { false }
 		  }
 
@@ -91,10 +91,12 @@ Pause = PauseState:new()
 
 -- State is the current state the game is running, the current state will have
 -- access to all love functions while inactive states cannot.
-state = Game
+state = Menu
 
 -- Random Number Generator
 rng = love.math.newRandomGenerator(os.time())
+
+timescale = 1.0
 
 function love.load()
 	-- set default options
@@ -107,7 +109,6 @@ function love.draw()
 	camera:attach()
   state:draw()
   camera:detach()
-  love.graphics.print("FPS " .. love.timer.getFPS(), 10, 10)
 end
 
 function love.update(dt)
@@ -167,7 +168,7 @@ function love.quit()
 end
 
 function switchState(newstate)
-	state = newstate
+  state = newstate
 	-- Load the new state
 	state:load()
 end

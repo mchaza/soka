@@ -35,7 +35,7 @@ function Member:new(x, y, tx, ty, size, graphics, team)
   -- Velocity stores the movement/spread axis's to determine direction
   -- a member is moving for collision reaction 
   instance.vel = Vector(0, 0)
-  instance.speed = 1.5 * sf.x * sf.aspect
+  instance.speed = 40 * timescale
   instance.scspeed = instance.speed / 2
   instance.regroupspeed = instance.speed / 3.5
   instance.regroupthres = 0.05
@@ -96,14 +96,18 @@ function Member:update(dt)
 end
 
 function Member:move(dt)
-  local x = (self.team.controller.Axes.LeftX * self.speed * dt)
-	local y = (self.team.controller.Axes.LeftY * self.speed * dt)
+  local speedran = 0
+  if self.team.members[1] ~= self then
+    speedran = rng:random(1, 10)
+  end
+  
+  local x = (self.team.controller.Axes.LeftX * (self.speed + speedran) * dt)
+	local y = (self.team.controller.Axes.LeftY * (self.speed + speedran) * dt)
 	self.pos.x = self.pos.x + x
 	self.pos.y = self.pos.y + y
   self.vel.x = x
   self.vel.y = y
 end
-
 -- Spread or contract based on the position of the right joystick
 function Member:spreadcontract(dt)
   local x = self.team.controller.Axes.RightX
@@ -214,20 +218,3 @@ function Member:setDirection()
     self.graphics.offset = self.graphics.size
   end
 end
-
---Obsolute Collision System
---[[local vx = math.sqrt(math.pow(self.vel.x, 2))
-    local vx2 = math.sqrt(math.pow(member.vel.x, 2))
-    local pushStrength = 30
-    if vx > vx2 then
-      member.pos.x = member.pos.x - (-self.vel.x * pushStrength)
-    else
-      self.pos.x = self.pos.x - (-member.vel.x * pushStrength)
-    end
-    local vy = math.sqrt(math.pow(self.vel.y, 2))
-    local vy2 = math.sqrt(math.pow(member.vel.y, 2))
-    if vy > vy2 then
-      member.pos.y = member.pos.y - (-self.vel.y * pushStrength)
-    else
-      self.pos.y = self.pos.y - (-member.vel.y * pushStrength)
-    end]]

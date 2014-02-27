@@ -33,11 +33,10 @@ function shuffle(array)
     end
 end
 
-function scandir(directory)
-    local i, t, popen = 0, {}, io.popen
-    for filename in popen('ls -a "'..directory..'"'):lines() do
-        i = i + 1
-        t[i] = filename
+function findIndexByID(table, id)
+  for i = 1,  #table do
+    if table[i].id == id then
+      return i
     end
-    return t
+  end
 end

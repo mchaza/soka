@@ -23,13 +23,11 @@ require 'objects.level'
 
 -- CONSTANTS
 
-MAX_VEL = 250
-MAX_STRENGTH = 2
-KICK_SPEED = 70
+MAX_STRENGTH = 1.75
 PICKUP_DELAY = 0.15
 STEAL_DELAY = 0.2
 PICKUP_RAD = 2
-WIN_SCORE = 9
+WIN_SCORE = 11
 
 BALL_R = 0.15
 BALL_X = FIELD_CENTER_X + BALL_R * 4
@@ -46,14 +44,21 @@ function Ball:new()
   instance.vel = Vector(0, 0)
   instance.accel = 5
   instance.restitution = 0.85
-  instance.friction = 40
+  instance.friction = 50 * timescale
   
   -- Handling
   instance.holder = {current = nil, previous = nil}
   instance.carrydist = Vector(0, 0)
   -- Kicking
+  instance.kickspeed = 75 * timescale
   instance.kicking = false
   instance.strength = 1.0
+  instance.ps = instance:initparticlesystem()
+  
+  -- Trail 
+  instance.trail = {}
+  instance.trailtimer = 0.0
+  instance.traildelay = false
   
   -- Pickup Delay
   instance.canpickup = true
@@ -77,9 +82,16 @@ function Ball:draw()
   if self.scored then
     return
   end
-  
+  --love.graphics.setColor(255, 255, 135, 255)
 	love.graphics.circle("fill", (self.pos.x - self.rad) * sf.x, 
 						(self.pos.y ) * sf.y, self.rad * 2 * sf.x * sf.aspect, 75)
+          
+  for _, obj in ipairs(self.trail) do
+    love.graphics.setColor(255, 255, 255, obj.transpency)
+    love.graphics.circle('fill', (obj.pos.x - self.rad) * sf.x, obj.pos.y * sf.y,
+      self.rad * 2 * sf.x * sf.aspect, 75)
+  end
+  love.graphics.setColor(255, 255, 255, 255)
 end
 
 function Ball:update(dt)
@@ -96,10 +108,13 @@ function Ball:update(dt)
     self:move(dt)
     self:score()
     self:constrain(dt)
+    self:createtrail()
   end
   self:wincondition()
   self:camerafollow(dt)
   self:timer(dt)
+  self:updatetrail(dt)
+  self.ps:update(dt)
 end
 
 function Ball:move(dt)
@@ -121,10 +136,19 @@ function Ball:move(dt)
   elseif self.vel.y < 0 then
     self.vel.y = self.vel.y + self.friction * dt
   end
+  
+  if self.vel.x < 0.1 and self.vel.x > -0.1 then
+    self.vel.x = 0
+  end
+  if self.vel.y < 0.1 and self.vel.y > -0.1 then
+    self.vel.y = 0
+  end
 end
 
 function Ball:camerafollow(dt)
-  --camera:lookAt(self.pos.x, self.pos.y)
+  --[[if #Game.camerashake.shakes == 0 then
+    camera:lookAt(self.pos.x, self.pos.y)
+  end]]
 end
 function Ball:carry()
   local holder = self.holder.current
@@ -166,7 +190,7 @@ function Ball:kick(member, dt)
      and not controls.Buttons.LT and not controls.Buttons.LeftStick
      and not controls.Buttons.RightStick then
     
-    local direction = { }
+    local direction = Vector(0, 0)
     direction.x = controls.Axes.LeftX
     direction.y = controls.Axes.LeftY
     
@@ -174,17 +198,28 @@ function Ball:kick(member, dt)
       direction.x = self.holder.current.graphics.direction
     end
     
-    local vx = direction.x * KICK_SPEED * self.strength
-    local vy = direction.y * KICK_SPEED * self.strength
+    local vx = direction.x * self.kickspeed * self.strength
+    local vy = direction.y * self.kickspeed * self.strength
     
     -- Apply Force
     self.vel = Vector(vx,vy)
     
+    -- Move the ball a few times
+    self:move(dt)
+    self:move(dt)
+    
+    -- Particles
+    --[[self.ps:start()
+    self.ps:setPosition( self.pos.x, self.pos.y)
+    self.ps:setDirection(Vector(direction.x, -direction.y):angleTo())
+    self.ps:emit(5)
+    self.ps:stop()]]
+    
     -- Apple Kick Back Tween to holder
-    local kickback = 15
+    local kickback = 35
     local holderpos = self.holder.current.pos
-    Timer.tween(0.25, holderpos, {x = holderpos.x - vx/kickback, 
-                y = holderpos.y - vy/kickback},
+    Timer.tween(0.25, holderpos, {x = holderpos.x + vx/kickback, 
+                y = holderpos.y + vy/kickback},
               'out-back')
     
     self.kicking = false
@@ -208,6 +243,30 @@ function Ball:kick(member, dt)
   
 end
 
+function Ball:createtrail()
+  if math.sqrt(math.pow(self.vel.x, 2) + math.pow(self.vel.y, 2)) > 0 and not self.traildelay then
+    local obj = {}
+    obj.pos = Vector(self.pos.x, self.pos.y)
+    obj.transpency = 200
+    table.insert(self.trail, obj)
+    self.traildelay = true
+    self.trailtimer = 0.01
+  end
+end
+function Ball:updatetrail(dt)
+  for i=1, #self.trail do
+    self.trail[i].transpency = self.trail[i].transpency - 10
+    if self.trail[i].transpency < 5 then
+      table.remove(self.trail, i)
+      return
+    end
+  end
+  if self.trailtimer > 0.0 then
+    self.trailtimer = self.trailtimer - dt
+  else
+    self.traildelay = false
+  end
+end
 function Ball:pickup(member)
   if not self.canpickup or self.scored then
     return
@@ -252,6 +311,9 @@ function Ball:steal(member, dt)
     Timer.tween(0.5, memberpos, {x = memberpos.x + normal.x *knockback, 
               y = memberpos.y + normal.y * knockback},
             'out-back')
+    
+    self.kicking = false
+    self.holder.current.kicking = false
           
     self.holder.previous = holder
     self.holder.current = member
@@ -272,9 +334,13 @@ function Ball:score()
     Game.team1.score = Game.team1.score + 1
     if self.holder.previous.team == Game.team2 then
       audio:cmiss()
+      audio:cgoal(50 * sf.x, 0)
     else
-      audio:cgoal()
+      audio:cgoal(-50 * sf.x, 0)
     end
+    Game.level.psleft:start()
+    Game.level.psleft:emit(150)
+    Game.level.psleft:stop()
   end
   -- Team 2 goal 
   if self.pos.x<= FIELD_LEFT and self.pos.y > GOAL_Y1 and self.pos.y < GOAL_Y2 then
@@ -282,9 +348,13 @@ function Ball:score()
     Game.team2.score = Game.team2.score + 1  
     if self.holder.previous.team == Game.team1 then
       audio:cmiss()
+      audio:cgoal(-50 * sf.x, 0)
     else
-      audio:cgoal()
+      audio:cgoal(50 * sf.x, 0)
     end
+    Game.level.psright:start()
+    Game.level.psright:emit(150)
+    Game.level.psright:stop()
   end
   if score then
     self.pos.x = BALL_X
@@ -297,18 +367,25 @@ function Ball:score()
 end
 
 function Ball:wincondition()
-  if Game.team1.score >= WIN_SCORE then
+  if Game.team1.score >= WIN_SCORE and
+     Game.team1.score >= Game.team2.score + 2 then
     self.win = true
     self.winner = 1
+    Game.level.psright:setColors( 255, 255, 255, 255, 255, 189, 99 ,255 )
   end
-  if Game.team2.score >= WIN_SCORE then
+  if Game.team2.score >= WIN_SCORE and
+     Game.team2.score >= Game.team1.score + 2 then
     self.win = true
     self.winner = 2
+    Game.level.psleft:setColors( 255, 255, 255, 255, 138, 185, 237 ,255 )
   end
   if self.win then
-    Game.camerashake:add(3, 99999)
+    Game.camerashake:add(5, 99999)
     audio:cend()
-    audio:cgoal()
+    Timer.add(1, audio:cgoal(50 * sf.x, 0))
+    Timer.add(2, audio:cgoal(-50 *sf.x, 0))
+    Game.level.psright:start()
+    Game.level.psleft:start()
   end
 end
 
@@ -326,13 +403,17 @@ function Ball:moveBack(dt)
     self.scored = false
   end
   
-  if center1.pos.x > FIELD_CENTER_X - threshold then
-    center1.pos.x = center1.pos.x - center1.speed * dt
-  end
-  if center2.pos.x < FIELD_CENTER_X + threshold then
-    center2.pos.x = center2.pos.x + center2.speed * dt
+  for _, member in ipairs(Game.team1.members) do
+    if center1.pos.x > FIELD_CENTER_X - threshold then
+       member.pos.x = member.pos.x - member.speed * dt
+    end
   end
   
+  for _, member in ipairs(Game.team2.members) do
+    if center2.pos.x < FIELD_CENTER_X + threshold then
+       member.pos.x = member.pos.x + member.speed * dt
+    end
+  end
 end
 
 function Ball:constrain(dt)
@@ -388,4 +469,15 @@ function Ball:miss(direction)
       end
     end
   end
+end
+function Ball:initparticlesystem()
+  local image = love.graphics.newImage('assets/gfx/particle.png')
+  local ps = love.graphics.newParticleSystem( image, 10)
+  ps:setEmissionRate(10)
+	ps:setSpeed(10 * sf.x, 15 * sf.y)
+  ps:setParticleLifetime(0.5)
+  ps:setSizes( 0.1, 0.5, 0.1 )
+  ps:setSpread( 1.5 )
+  ps:stop()
+  return ps
 end

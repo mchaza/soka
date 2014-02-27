@@ -10,6 +10,7 @@ CameraShake = {}
 	---- Required Update ----
 
 ]]
+require 'libraries.utils'
 
 function CameraShake:new(camera)
     local instance = {}
@@ -17,7 +18,7 @@ function CameraShake:new(camera)
     self.__index = self
 
     instance.camera = camera
-    instance.x, self.y = camera:pos()
+    instance.x, instance.y = camera:pos()
     instance.shakes = {}
     instance.shake_intensity = 0
     instance.uid = 0
@@ -47,12 +48,4 @@ function CameraShake:update()
                        self.y + rng:random(-self.shake_intensity, self.shake_intensity))
 
     if self.shake_intensity == 0 then self.camera:lookAt(self.x, self.y) end
-end
-
-function findIndexByID(table, id)
-  for i = 1,  #table do
-    if table[i].id == id then
-      return i
-    end
-  end
 end
